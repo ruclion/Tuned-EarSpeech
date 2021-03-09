@@ -42,23 +42,25 @@ with open(metas_path[0], 'r', encoding='utf-8') as f:
         # SSB00050001.wav	广 guang3 州 zhou1 女 nv3 大 da4 学 xue2
         # print('origi:', x)
         x = x.strip().split()
-        print(x)
+        # print(x)
 
         # audio_path
         name = x[0]
         audio_path = os.path.join(os.path.join('/ceph/dataset/AISHELL-3_denoise_dereverb_/train/wav', name.split('.')[0][:-4]), name)
-        print(audio_path, os.path.exists(audio_path))
+        if os.path.exists(audio_path) is False:
+            continue
 
         # txt
         txt_list = []
         for i in range(2, len(x), 2):
             txt_list.append(x[i])
         txt = ' '.join(txt_list)
-        print(txt)
+        # print(txt)
 
         # speaker_npy_path
         npy_path = os.path.join(os.path.join('/ceph/home/hujk17/npy-EarSpeech-HCSI-Data/dereverb_npy', name.split('.')[0][:-4]), 'spk-' + name.split('.')[0] + '.npy')
-        print(npy_path, os.path.exists(npy_path))
+        if os.path.exists(npy_path) is False:
+            continue
 
 
         # add speech
@@ -67,11 +69,15 @@ with open(metas_path[0], 'r', encoding='utf-8') as f:
         a.txt = txt
         a.speaker_npy_path = npy_path
         res.append(a)
-        break
+        # break
 
 
 for no in range(2, len(metas_path)):
     now_file = metas_path[no]
+    if '/ceph/dataset/M2VoC/TSV-Track1-S2-female-Anchor-100/TSV-Track1-S2-female-Anchor-100.txt' == now_file:
+        continue
+    if '/ceph/dataset/M2VoC/TSV-Track1-S1-male-Sales-100/TSV-Track1-S1-male-Sales-100.txt' == now_file:
+        continue
     with open(now_file, 'r', encoding='utf-8') as f:
         f_list = f.readlines()
         for i in range(0, len(f_list), 5):
@@ -83,18 +89,20 @@ for no in range(2, len(metas_path)):
             # audio_path
             main_dir = '/'.join(now_file.split('/')[:-1])
             name = f_list[i].strip()
-            print(main_dir)
+            # print(main_dir)
             audio_path = os.path.join(main_dir, os.path.join('wavs', name + '.wav'))
-            print(audio_path, os.path.exists(audio_path))
+            if os.path.exists(audio_path) is False:
+                continue
             
             # txt
-            txt = f_list[i + 2].strip()
-            print(txt)
+            txt = f_list[i + 2].strip().replace('[] ', '')
+            # print(txt)
 
             # speaker_npy_path
             npy_dir = now_file.split('/')[-1].split('.')[0]
             npy_path = os.path.join(os.path.join('/ceph/home/hujk17/npy-EarSpeech-HCSI-Data/tst_npy', npy_dir), 'spk-' + name + '.npy')
-            print(npy_path, os.path.exists(npy_path))
+            if os.path.exists(npy_path) is False:
+                continue
 
 
             # add speech
@@ -103,6 +111,11 @@ for no in range(2, len(metas_path)):
             a.txt = txt
             a.speaker_npy_path = npy_path
             res.append(a)
-            break
-    break
+            # break
+    # break
+# '/ceph/dataset/M2VoC/TSV-Track1-S2-female-Anchor-100/TSV-Track1-S2-female-Anchor-100.txt
 
+# 写
+with open(out_path, 'w', encoding='utf-8') as f:
+    for x in res:
+        f.write(x.audio_path + '|' + x.txt + '|' + x.speaker_npy_path + '\n')
