@@ -42,7 +42,8 @@ class Encoder(nn.Module):
         x.transpose_(1, 2)
         x = self.cbhg(x)
         if speaker_embedding is not None:
-            x = self.add_speaker_embedding(x, speaker_embedding)
+            ada_speaker_embedding = self.ada_speaker_FC(speaker_embedding)
+            x = self.add_speaker_embedding(x, ada_speaker_embedding)
         return x
 
     def add_speaker_embedding(self, x, speaker_embedding):
@@ -386,6 +387,7 @@ class Tacotron(nn.Module):
         # SV2TTS: Run the encoder with the speaker embedding
         # The projection avoids unnecessary matmuls in the decoder loop
         encoder_seq = self.encoder(x, speaker_embedding)
+        # print('output:', encoder_seq.shape)
         encoder_seq_proj = self.encoder_proj(encoder_seq)
 
         # Need a couple of lists for outputs

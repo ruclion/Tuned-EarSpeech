@@ -104,10 +104,10 @@ def train(run_id: str, metadata_fpath: str, models_dir: str, save_every: int,
     
     # Initialize the dataset
     dataset = SynthesizerDataset(metadata_fpath, hparams)
-    test_loader = DataLoader(dataset,
-                             batch_size=1,
-                             shuffle=True,
-                             pin_memory=True)
+    # test_loader = DataLoader(dataset,
+    #                          batch_size=1,
+    #                          shuffle=True,
+    #                          pin_memory=True)
 
     for i, session in enumerate(hparams.tts_schedule):
         current_step = model.get_step()
@@ -156,17 +156,17 @@ def train(run_id: str, metadata_fpath: str, models_dir: str, save_every: int,
                 # Generate stop tokens for training
                 stop = torch.ones(mels.shape[0], mels.shape[2])
                 for j, k in enumerate(idx):
-                    stop[j, :int(dataset.metadata[k][4])-1] = 0
+                    stop[j, :int(dataset.metadata[k][3])-1] = 0
 
                 texts = texts.to(device)
                 mels = mels.to(device)
                 embeds = embeds.to(device)
                 stop = stop.to(device)
 
-                print('texts', texts.shape)
-                print(mels.shape)
-                print(embeds.shape)
-                print(stop.shape)
+                # print('texts', texts.shape)
+                # print(mels.shape)
+                # print(embeds.shape)
+                # print(stop.shape)
 
                 # Forward pass
                 # Parallelize model onto GPUS using workaround due to python bug
@@ -220,7 +220,7 @@ def train(run_id: str, metadata_fpath: str, models_dir: str, save_every: int,
                         # At most, generate samples equal to number in the batch
                         if sample_idx + 1 <= len(texts):
                             # Remove padding from mels using frame length in metadata
-                            mel_length = int(dataset.metadata[idx[sample_idx]][4])
+                            mel_length = int(dataset.metadata[idx[sample_idx]][3])
                             mel_prediction = np_now(m2_hat[sample_idx]).T[:mel_length]
                             target_spectrogram = np_now(mels[sample_idx]).T[:mel_length]
                             attention_len = mel_length // model.r

@@ -7,15 +7,15 @@ from synthesizer.utils.text import text_to_sequence
 
 class SynthesizerDataset(Dataset):
     def __init__(self, metadata_fpath: Path, hparams):
-        print("Using inputs from:\n\t%s\n\t%s\n\t%s" % (metadata_fpath))
+        print("Using inputs from:\n\t%s\n" % (metadata_fpath))
         
-        with metadata_fpath.open("r") as metadata_file:
-            metadata = [line.split("|") for line in metadata_file]
+        with open(metadata_fpath, 'r', encoding='utf-8') as metadata_file:
+            metadata = [line.strip().split("|") for line in metadata_file]
         
         mel_fpaths = [x[0] for x in metadata]
         embed_fpaths = [x[1] for x in metadata]
         self.samples_fpaths = list(zip(mel_fpaths, embed_fpaths))
-        self.samples_texts = [x[4].strip() for x in metadata]
+        self.samples_texts = [x[4] for x in metadata]
         self.metadata = metadata
         self.hparams = hparams
         
@@ -28,7 +28,8 @@ class SynthesizerDataset(Dataset):
             index = index[0]
 
         mel_path, embed_path = self.samples_fpaths[index]
-        mel = np.load(mel_path).T.astype(np.float32)
+        mel = np.load(mel_path).astype(np.float32)
+        assert mel.shape[0] == 80
         
         # Load the embed
         embed = np.load(embed_path)
@@ -38,6 +39,11 @@ class SynthesizerDataset(Dataset):
         
         # Convert the list returned by text_to_sequence to a numpy array
         text = np.asarray(text).astype(np.int32)
+
+        # print(text, text.shape)
+        # print(mel, mel.shape)
+        # print(embed, embed.shape)
+        # print(index)
 
         return text, mel.astype(np.float32), embed.astype(np.float32), index
 
