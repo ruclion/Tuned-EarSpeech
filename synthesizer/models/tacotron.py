@@ -34,6 +34,8 @@ class Encoder(nn.Module):
                          proj_channels=[cbhg_channels, cbhg_channels],
                          num_highways=num_highways)
 
+        self.ada_speaker_FC = nn.Linear(512, 256) # 512 -> 256
+
     def forward(self, x, speaker_embedding=None):
         x = self.embedding(x)
         x = self.pre_net(x)

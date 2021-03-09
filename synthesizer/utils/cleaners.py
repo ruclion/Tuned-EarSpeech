@@ -80,9 +80,9 @@ def transliteration_cleaners(text):
 
 def english_cleaners(text):
   """Pipeline for English text, including number and abbreviation expansion."""
-  text = convert_to_ascii(text)
-  text = lowercase(text)
-  text = expand_numbers(text)
-  text = expand_abbreviations(text)
-  text = collapse_whitespace(text)
+  # text = convert_to_ascii(text)
+  # text = lowercase(text)
+  # text = expand_numbers(text)
+  # text = expand_abbreviations(text)
+  # text = collapse_whitespace(text)
   return text

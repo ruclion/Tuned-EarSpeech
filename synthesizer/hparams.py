@@ -84,8 +84,16 @@ hparams = HParams(
 
         ### SV2TTS
         speaker_embedding_size = 256,               # Dimension for the speaker embedding
-        silence_min_duration_split = 0.4,           # Duration in seconds of a silence for an utterance to be split
-        utterance_min_duration = 1.6,               # Duration in seconds below which utterances are discarded
+        # silence_min_duration_split = 0.4,           # Duration in seconds of a silence for an utterance to be split
+        # utterance_min_duration = 1.6,               # Duration in seconds below which utterances are discarded
+        
+        # FaPig 简化代码:
+        metadata_fpath = '/ceph/home/hujk17/Tuned-EarSpeech/preprocess_dataset/train.txt',
+        models_dir = 'synthesizer/saved_models/',
+        save_every = 1000,
+        backup_every = 25000,
+        force_restart = True,
+
         )
 
 def hparams_debug_string():
