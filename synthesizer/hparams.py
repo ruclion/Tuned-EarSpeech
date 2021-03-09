@@ -57,8 +57,8 @@ hparams = HParams(
                         (2,  1e-5, 640_000,  12)],  # lr = learning rate
 
         tts_clip_grad_norm = 1.0,                   # clips the gradient norm to prevent explosion - set to None if not needed
-        # tts_eval_interval = 500,                    # Number of steps between model evaluation (sample generation)
-        tts_eval_interval = 5,                    # Number of steps between model evaluation (sample generation)
+        tts_eval_interval = 500,                    # Number of steps between model evaluation (sample generation)
+        # tts_eval_interval = 5,                    # Number of steps between model evaluation (sample generation)
                                                     # Set to -1 to generate after completing epoch, or 0 to disable
 
         tts_eval_num_samples = 1,                   # Makes this number of samples
@@ -91,10 +91,10 @@ hparams = HParams(
         # FaPig 简化代码:
         metadata_fpath = '/ceph/home/hujk17/Tuned-EarSpeech/preprocess_dataset/train.txt',
         models_dir = 'synthesizer/saved_models/',
-        # save_every = 1000,
-        save_every = 10,
-        backup_every = 25000,
-        force_restart = True,
+        save_every = 1000,
+        # save_every = 10,
+        backup_every = 5000,
+        force_restart = False,
 
         )
 

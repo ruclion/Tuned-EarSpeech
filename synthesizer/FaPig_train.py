@@ -15,6 +15,12 @@ import numpy as np
 from pathlib import Path
 import sys
 import time
+from utils.logger import Tacotron2Logger
+from preprocess_dataset.gl import write_wav, mel2wav
+import os
+
+
+good_logger = Tacotron2Logger('./log_dir')
 
 
 def np_now(x: torch.Tensor): return x.detach().cpu().numpy()
@@ -152,6 +158,7 @@ def train(run_id: str, metadata_fpath: str, models_dir: str, save_every: int,
         for epoch in range(1, epochs+1):
             for i, (texts, mels, embeds, idx) in enumerate(data_loader, 1):
                 start_time = time.time()
+                start = time.perf_counter()
 
                 # Generate stop tokens for training
                 stop = torch.ones(mels.shape[0], mels.shape[2])
@@ -186,10 +193,10 @@ def train(run_id: str, metadata_fpath: str, models_dir: str, save_every: int,
                 optimizer.zero_grad()
                 loss.backward()
 
-                if hparams.tts_clip_grad_norm is not None:
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), hparams.tts_clip_grad_norm)
-                    if np.isnan(grad_norm.cpu()):
-                        print("grad_norm was NaN!")
+                # if hparams.tts_clip_grad_norm is not None:
+                grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), hparams.tts_clip_grad_norm)
+                if np.isnan(grad_norm.cpu()):
+                    print("grad_norm was NaN!")
 
                 optimizer.step()
 
@@ -201,6 +208,16 @@ def train(run_id: str, metadata_fpath: str, models_dir: str, save_every: int,
 
                 msg = f"| Epoch: {epoch}/{epochs} ({i}/{steps_per_epoch}) | Loss: {loss_window.average:#.4} | {1./time_window.average:#.2} steps/s | Step: {k}k | "
                 stream(msg)
+
+                if step % 10 == 0: 
+                    good_logger.log_training(reduced_loss=loss.item(),
+                                            reduced_mel_loss=loss.item() - stop_loss.item(),
+                                            reduced_gate_loss=stop_loss.item(),
+                                            grad_norm=grad_norm,
+                                            learning_rate=optimizer.param_groups[0]['lr'],
+                                            duration=time.perf_counter() - start,
+                                            iteration=step)
+
 
                 # Backup or save model as appropriate
                 if backup_every != 0 and step % backup_every == 0 : 
@@ -255,9 +272,17 @@ def eval_model(attention, mel_prediction, target_spectrogram, input_seq, step,
     np.save(str(mel_output_fpath), mel_prediction, allow_pickle=False)
 
     # save griffin lim inverted wav for debug (mel -> wav)
-    wav = audio.inv_mel_spectrogram(mel_prediction.T, hparams)
-    wav_fpath = wav_dir.joinpath("step-{}-wave-from-mel_sample_{}.wav".format(step, sample_num))
-    audio.save_wav(wav, str(wav_fpath), sr=hparams.sample_rate)
+    # wav = audio.inv_mel_spectrogram(mel_prediction.T, hparams)
+    # wav_fpath = wav_dir.joinpath("step-{}-wave-from-mel_sample_{}.wav".format(step, sample_num))
+    # audio.save_wav(wav, str(wav_fpath), sr=hparams.sample_rate)
+
+
+    os.makedirs('log_wavs', exist_ok=True)
+    _wav_pre = mel2wav(mel_prediction, wav_name_path=os.path.join('log_wavs', str(step) + '_pre.wav'))
+    _wav_target = mel2wav(target_spectrogram, wav_name_path=os.path.join('log_wavs', str(step) + '_target.wav'))
+
+
+
 
     # save real and predicted mel-spectrogram plot to disk (control purposes)
     spec_fpath = plot_dir.joinpath("step-{}-mel-spectrogram_sample_{}.png".format(step, sample_num))
