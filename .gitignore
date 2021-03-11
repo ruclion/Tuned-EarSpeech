@@ -6,3 +6,4 @@ samples/
 *.txt
 log_dir/
 log_wavs/
+samples_Cross/
